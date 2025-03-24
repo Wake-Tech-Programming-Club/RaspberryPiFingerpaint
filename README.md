@@ -14,8 +14,8 @@ Paint a masterpiece with nothing but your finger and a webcam!
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Wake-Tech-Programming-Club/maze_game.git
-   cd maze_game
+   git clone https://github.com/Wake-Tech-Programming-Club/RaspberryPiFingerpaint.git
+   cd RaspberryPiFingerpaint
    ```
 
 2. **Set up a virtual environment** *(recommended, but not required)*:

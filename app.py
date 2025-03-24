@@ -7,16 +7,21 @@ from configparser import ConfigParser
 from datetime import datetime
 import time, threading
 import utils as u
+import os
 
-# Fancy text for the lols
-print(open("./splash.txt").read())
 
 # Configuration
 config = ConfigParser()
 
+if not os.path.exists("./config.ini"):
+    raise Exception("Config.ini does not exist. Try copying config-example.ini as config.ini")
+
 def load_config():
         config.read('config.ini')
         print("Loaded config")
+
+# Fancy text for the lols
+print(open("./splash.txt").read())
 
 load_config()
 
@@ -36,6 +41,7 @@ num_codes = []
 for i in range(10):
     num_codes.append(ord(str(i)))
 
+# Display splash image
 splash = cv2.imread("splash.jpg")
 cv2.imshow("Hand Tracking", splash)
 
@@ -227,7 +233,7 @@ def detect_hand():
             print("Background Toggled")
             side_by_side = not side_by_side
 
-        elif key == ord("[") and brush_size > 0:
+        elif key == ord("[") and brush_size > 1:
             print("Brush Smaller")
             brush_size = brush_size - 1
         elif key == ord("]") and brush_size <= config.getint("config", "max_brush_size"):
