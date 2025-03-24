@@ -47,11 +47,11 @@ hands = mp_hands.Hands(min_detection_confidence=config.getfloat("config", "min_d
 # Start webcam
 cap = cv2.VideoCapture(config.getint("config", "camera_id"))
 
-
 save_countdown = -2
 display = None
 
 def detect_hand():
+    background_mode = 1
 
     # Create the drawing canvas
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -108,11 +108,13 @@ def detect_hand():
         # If saving
         ret, frame = cap.read()
         if save_countdown == -1:
+            flash = np.hstack((flash, drawing))
             display_image(flash)
             cv2.waitKey(1)
             continue
         elif display is not None:
-            display_image(display)
+            d = np.hstack((display, drawing))
+            display_image(d)
             cv2.waitKey(1)
             continue
 
@@ -166,7 +168,10 @@ def detect_hand():
 
 
         # Overlay the drawing on the camera
-        frame = overlay_drawing(frame)
+        if (background_mode == 1):
+            frame = np.hstack((frame, drawing))
+        else:
+            frame = overlay_drawing(frame)
         
         # Show the result
         display_image(frame)
@@ -196,7 +201,7 @@ def detect_hand():
 
         elif key == ord("b"):
             print("Background Toggled")
-            # background_mode = not background_mode
+            background_mode = not background_mode
 
         elif key == ord("["):
             print("Brush Smaller")
