@@ -48,7 +48,8 @@ cv2.imshow("Hand Tracking", splash)
 # Initialize MediaPipe Hands
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
-hands = mp_hands.Hands(min_detection_confidence=config.getfloat("config", "min_detection"), min_tracking_confidence=config.getfloat("config", "min_tracking"))
+
+hands = mp_hands.Hands(min_detection_confidence=config.getfloat("tracking", "min_detection"), min_tracking_confidence=config.getfloat("tracking", "min_tracking"))
 
 # Start webcam
 cap = cv2.VideoCapture(config.getint("config", "camera_id"))
@@ -66,12 +67,16 @@ def detect_hand():
     """
     side_by_side = True
     brush_size = 10
-    color = (255,255,255)
+    color = (22, 22, 112)
 
     # Create the drawing canvas the same size as our camera
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    drawing = np.zeros((height,width,3), np.uint8)
+
+    def new_drawing():
+        return np.full((height,width,3), 255, np.uint8)
+    
+    drawing = new_drawing()
 
     # keep track of where the finger was last seen
     x_prev = 0
@@ -112,7 +117,8 @@ def detect_hand():
         # Capture the frame to save and show it instead of the camera feed
         _, display = cap.read()
         display = cv2.flip(display, 1)
-        display = overlay_drawing(display)
+        if not side_by_side:
+            display = overlay_drawing(display)
 
         # Show a "flash" over the camera
         time.sleep(config.getfloat("saving", "flash_duration"))
@@ -121,29 +127,40 @@ def detect_hand():
         # Save the image
         path = config.get("saving", "path") + "/" + datetime.today().strftime("%B %d, %Y, %H %M %S") + ".jpg"
         print(f"Saving {path}")
-        cv2.imwrite(path, display)
+        if side_by_side:
+            cv2.imwrite(path, drawing)
+        else:
+            cv2.imwrite(path, display)
 
         # Resume displaying the camera feed
         time.sleep(config.getint("saving", "show_duration"))
         display = None
     
-    # Create a white image to act as a "camera flash"
-    flash = np.zeros((window_height, window_width, 3), dtype=np.uint8)
-    flash.fill(255)
-    flash = cv2.cvtColor(flash, cv2.COLOR_BGR2RGB)
+    def create_flash():
+        # Create a white image to act as a "camera flash"
+        if side_by_side:
+            flash = np.full((height, width, 3), 255, dtype=np.uint8)
+        else:
+            flash = np.full((window_height, window_width, 3), 255, dtype=np.uint8)
+        return cv2.cvtColor(flash, cv2.COLOR_BGR2RGB)
 
     # Update as often as possible
     while True:
         ret, frame = cap.read()
         # If saving, display the flash image
         if save_countdown == -1:
-            flash = np.hstack((flash, drawing))
-            display_image(flash)
+            fl = create_flash()
+            if side_by_side:
+                fl = np.hstack((fl, fl))
+            display_image(fl)
             cv2.waitKey(1)
             continue
         # If an image was recently saved, display the saved picture
         elif display is not None:
-            d = np.hstack((display, drawing))
+            if side_by_side:
+                d = np.hstack((display, drawing))
+            else:
+                d = display
             display_image(d)
             cv2.waitKey(1)
             continue
@@ -163,10 +180,10 @@ def detect_hand():
             for hand_landmarks in result.multi_hand_landmarks:
                 x_index = int(hand_landmarks.landmark[8].x * frame.shape[1])
                 y_index = int(hand_landmarks.landmark[8].y * frame.shape[0])
-                z_index = int(hand_landmarks.landmark[8].z * config.getint("config", "z_scale"))
+                z_index = int(hand_landmarks.landmark[8].z * config.getint("tracking", "z_scale"))
 
                 # Z Position based drawing. It works, but not well. Gotta find another way
-                # if z_index < config.getint("config", "z_cutoff"):
+                # if z_index < config.getint("tracking", "z_cutoff"):
                 #     drawMode = False
                 #     continue
 
@@ -225,7 +242,7 @@ def detect_hand():
 
         elif key == ord("c"):
             print("Clearing...")
-            drawing = np.zeros((height,width,3), np.uint8)
+            drawing = new_drawing()
         
         elif key == ord("s"):
             threading.Thread(target=save_image, args=()).start()
@@ -237,7 +254,7 @@ def detect_hand():
         elif key == ord("[") and brush_size > 1:
             print("Brush Smaller")
             brush_size = brush_size - 1
-        elif key == ord("]") and brush_size <= config.getint("config", "max_brush_size"):
+        elif key == ord("]") and brush_size <= config.getint("brushes", "max_brush_size"):
             print("Brush Larger")
             brush_size = brush_size + 1
 
