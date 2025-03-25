@@ -35,7 +35,7 @@ observer = Observer()
 observer.schedule(ConfigLoader(), ".", recursive=False)
 observer.start()
 
-# Keyboard color swapping codes
+# Keyboard color swapping codes (b, g, r)
 num_codes = []
 
 for i in range(10):
@@ -51,7 +51,8 @@ mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(min_detection_confidence=config.getfloat("config", "min_detection"), min_tracking_confidence=config.getfloat("config", "min_tracking"))
 
 # Start webcam
-cap = cv2.VideoCapture(config.getint("config", "camera_id"))
+#cap = cv2.VideoCapture(config.getint("config", "camera_id"))
+cap = cv2.VideoCapture(0)
 
 # the countdown to show on screen when saving
 save_countdown = -2
@@ -66,6 +67,7 @@ def detect_hand():
     """
     side_by_side = True
     brush_size = 10
+    color = (255,255,255)
 
     # Create the drawing canvas the same size as our camera
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -181,7 +183,7 @@ def detect_hand():
                     y_prev = y_index
 
                 # Draw on the canvas
-                cv2.line(drawing, (x_prev, y_prev), (x_index, y_index), (0, 0, 255), brush_size)
+                cv2.line(drawing, (x_prev, y_prev), (x_index, y_index), color, brush_size) #sets drawing color to white
                 draw_mode = True
 
                 # Update the hand position
@@ -243,6 +245,7 @@ def detect_hand():
         elif key in num_codes:
             print("Color Swap")
             # color = new_color
+            color = u.color_swap(key)
 
     # If you hit quit, stop the program and destroy the windows
     cap.release()
