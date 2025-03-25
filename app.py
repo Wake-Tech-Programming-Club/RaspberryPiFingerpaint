@@ -35,7 +35,7 @@ observer = Observer()
 observer.schedule(ConfigLoader(), ".", recursive=False)
 observer.start()
 
-# Keyboard color swapping codes (b, g, r)
+# Keyboard codes used for swapping colors
 num_codes = []
 
 for i in range(10):
@@ -51,8 +51,7 @@ mp_drawing = mp.solutions.drawing_utils
 hands = mp_hands.Hands(min_detection_confidence=config.getfloat("config", "min_detection"), min_tracking_confidence=config.getfloat("config", "min_tracking"))
 
 # Start webcam
-#cap = cv2.VideoCapture(config.getint("config", "camera_id"))
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(config.getint("config", "camera_id"))
 
 # the countdown to show on screen when saving
 save_countdown = -2
