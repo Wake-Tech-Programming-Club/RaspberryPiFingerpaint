@@ -35,3 +35,24 @@ def color_swap(num_codes): #(b, g, r)
         return (182, 171, 243)  # pink
     else:
         return 0 
+
+def switch_overlay_mode(drawing, new_mode):
+    if new_mode == True:
+        search_color = 0
+        set_color = 255
+    else:
+        search_color = 255
+        set_color = 0
+    background = np.where(
+        (drawing[:, :, 0] == search_color) & 
+        (drawing[:, :, 1] == search_color) & 
+        (drawing[:, :, 2] == search_color)
+    )
+
+    # set those pixels to the new color
+    drawing[background] = [
+        set_color,
+        set_color,
+        set_color
+    ]
+    return drawing

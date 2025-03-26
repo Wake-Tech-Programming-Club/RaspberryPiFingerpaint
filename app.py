@@ -65,7 +65,7 @@ def detect_hand():
     True for displaying it next to the camera
     False for displaying it on top of the camera
     """
-    side_by_side = True
+    side_by_side = False
     brush_size = 10
     color = (22, 22, 112)
 
@@ -73,8 +73,18 @@ def detect_hand():
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
+    def eraser_color():
+        if (side_by_side):
+            return (255, 255, 255)
+        else:
+            return (0, 0, 0)
+
     def new_drawing():
-        return np.full((height,width,3), 255, np.uint8)
+        if side_by_side == True:
+            bg_color = 255
+        else:
+            bg_color = 0
+        return np.full((height,width,3), bg_color, np.uint8)
     
     drawing = new_drawing()
 
@@ -90,7 +100,7 @@ def detect_hand():
     # Used to put the drawing on top of the camera feed. Math magic, don't ask me how it works lol
     def overlay_drawing(frame: cv2.Mat):
         gray = cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY)
-        _, invert = cv2.threshold(gray, 70, 255, cv2.THRESH_BINARY_INV)
+        _, invert = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY_INV)
         invert = cv2.cvtColor(invert, cv2.COLOR_GRAY2BGR)
         frame = cv2.bitwise_and(frame, invert)
         frame = cv2.bitwise_or(frame, drawing)
@@ -235,6 +245,7 @@ def detect_hand():
         # [: Brush Smaller
         # ]: Brush Larger
         # 1-9: Color Select
+        # E: Eraser mode
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
@@ -250,6 +261,7 @@ def detect_hand():
         elif key == ord("b"):
             print("Background Toggled")
             side_by_side = not side_by_side
+            drawing = u.switch_overlay_mode(drawing, side_by_side)
 
         elif key == ord("[") and brush_size > 1:
             print("Brush Smaller")
@@ -262,6 +274,9 @@ def detect_hand():
             print("Color Swap")
             # color = new_color
             color = u.color_swap(key)
+
+        elif key == ord("e"):
+            color = eraser_color()
 
     # If you hit quit, stop the program and destroy the windows
     cap.release()
