@@ -18,23 +18,34 @@ def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int):
 
     return int(window_width * 0.9), int(window_height * 0.9)
 
-def color_swap(num_codes): #(b, g, r)
+ #(b, g, r)
+colors = {
+    "red": (22, 22, 112),
+    "orange": (0, 129, 235),
+    "yellow": (76, 207, 255),
+    "green": (37, 116, 97),
+    "blue": (255, 153, 0),
+    "purple": (153, 0, 136),
+    "pink": (182, 171, 243)
+}
+
+def color_swap(num_codes):
     if num_codes == ord("1"):
-        return (22, 22, 112)    # red
+        return colors["red"]
     elif num_codes == ord("2"):
-        return (0, 129, 235)    # orange
+        return colors["orange"]
     elif num_codes == ord("3"):
-        return (76, 207, 255)   # yellow
+        return  colors["yellow"]
     elif num_codes == ord("4"):
-        return (37, 116, 97)    # green
+        return colors["green"]
     elif num_codes == ord("5"):
-        return (255, 153, 0)    # blue
+        return colors["blue"]
     elif num_codes == ord("6"):
-        return (153, 0, 136)    # purple
+        return colors["purple"]
     elif num_codes == ord("7"):
-        return (182, 171, 243)  # pink
+        return colors["pink"]
     else:
-        return 0 
+        return (0, 0, 0)
 
 def switch_overlay_mode(drawing, new_mode):
     if new_mode == True:

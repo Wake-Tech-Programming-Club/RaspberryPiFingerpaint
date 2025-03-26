@@ -6,6 +6,7 @@ from watchdog.observers import Observer
 from configparser import ConfigParser
 from datetime import datetime
 import time, threading
+from config_check import config_check
 import utils as u
 import os
 
@@ -17,13 +18,19 @@ if not os.path.exists("./config.ini"):
     raise Exception("Config.ini does not exist. Try copying config-example.ini as config.ini")
 
 def load_config():
+        global config
+        config = ConfigParser()
         config.read('config.ini')
+        if not config_check(config):
+            print("There were errors while reading the config file. Please make sure all properties are in both config.ini and config-example.ini.")
+            os._exit(0)
         print("Loaded config")
+
+load_config()
 
 # Fancy text for the lols
 print(open("./splash.txt").read())
 
-load_config()
 
 # Hot reload configuration
 class ConfigLoader(FileSystemEventHandler):
@@ -66,8 +73,8 @@ def detect_hand():
     False for displaying it on top of the camera
     """
     side_by_side = False
-    brush_size = 10
-    color = (22, 22, 112)
+    brush_size = config.getint("brushes", "default_brush_size")
+    color = u.colors[config.get("brushes", "default_color")]
 
     # Create the drawing canvas the same size as our camera
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
