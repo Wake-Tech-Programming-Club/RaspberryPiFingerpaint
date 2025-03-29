@@ -1,6 +1,5 @@
 from configparser import ConfigParser
 import numpy as np
-import cv2
 
 def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int):
     screen_width = config.getint("screen", "width")
@@ -45,7 +44,7 @@ def color_swap(num_codes):
     elif num_codes == ord("7"):
         return colors["pink"]
     else:
-        return (0, 0, 0)
+        return colors["red"]
 
 def switch_overlay_mode(drawing, new_mode):
     if new_mode == True:

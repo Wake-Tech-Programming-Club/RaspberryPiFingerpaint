@@ -9,7 +9,7 @@ import time, threading
 from config_check import config_check
 import utils as u
 import os
-
+import math
 
 # Configuration
 config = ConfigParser()
@@ -195,10 +195,24 @@ def detect_hand():
         # If it detects someone's hand
         if save_countdown == -2 and result.multi_hand_landmarks:
             for hand_landmarks in result.multi_hand_landmarks:
+                if config.getboolean("config", "debug"):
+                    mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
+
+                # Get the position of the tip of the index finger
                 x_index = int(hand_landmarks.landmark[8].x * frame.shape[1])
                 y_index = int(hand_landmarks.landmark[8].y * frame.shape[0])
                 z_index = int(hand_landmarks.landmark[8].z * config.getint("tracking", "z_scale"))
 
+                # Get the position of the tip of the middle finger
+                middle_x = int(hand_landmarks.landmark[12].x * frame.shape[1])
+                middle_y = int(hand_landmarks.landmark[12].y * frame.shape[0])
+                if config.getboolean("config", "debug"):
+                    line_color = (0, 0, 0) if not draw_mode else (255, 0, 255)
+                    cv2.line(frame, (x_index, y_index), (middle_x, middle_y), line_color)
+
+                # Calculate the distance between the two
+                finger_distance = int(math.sqrt((middle_x - x_index)**2 + (middle_y - y_index)**2))
+                
                 # Z Position based drawing. It works, but not well. Gotta find another way
                 # if z_index < config.getint("tracking", "z_cutoff"):
                 #     drawMode = False
@@ -209,7 +223,13 @@ def detect_hand():
                     cv2.putText(frame, f"X: {x_index}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
                     cv2.putText(frame, f"Y: {y_index}", (50, 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
                     cv2.putText(frame, f"Z: {z_index}", (50, 160), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
+                    cv2.putText(frame, f"D: {finger_distance}", (50, 190), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
                 
+                # Fingers together = draw, otherwise don't. Also filter out false positives
+                if finger_distance > config.getint("tracking", "finger_distance") or finger_distance < 3:
+                    draw_mode = False
+                    continue
+
                 # Prevent pauses in drawing from creating unwanted brush strokes
                 if draw_mode == False:
                     x_prev = x_index
@@ -258,11 +278,11 @@ def detect_hand():
         if key == ord("q"):
             break
 
-        elif key == ord("c"):
+        elif key == ord("c") and save_countdown == -2:
             print("Clearing...")
             drawing = new_drawing()
         
-        elif key == ord("s"):
+        elif key == ord("s") and save_countdown == -2:
             threading.Thread(target=save_image, args=()).start()
 
         elif key == ord("b"):
