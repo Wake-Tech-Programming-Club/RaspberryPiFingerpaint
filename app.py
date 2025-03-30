@@ -9,7 +9,8 @@ import time, threading
 from config_check import config_check
 import utils as u
 import os
-import math
+import math 
+from math import ceil
 
 # Configuration
 config = ConfigParser()
@@ -72,7 +73,7 @@ def detect_hand():
     True for displaying it next to the camera
     False for displaying it on top of the camera
     """
-    side_by_side = False
+    side_by_side = True
     brush_size = config.getint("brushes", "default_brush_size")
     color = u.colors[config.get("brushes", "default_color")]
 
@@ -152,7 +153,45 @@ def detect_hand():
         # Resume displaying the camera feed
         time.sleep(config.getint("saving", "show_duration"))
         display = None
-    
+
+    #Kristen Here: Gallery uses saved images to make a small slideshow. Start slideshow with 'g' and end slideshow with 'g'. Currently slideshow does not display in main display but creates a new window.
+    def play_gallery():
+        gallery_mode = True
+        
+        dst = "./output/"
+        images = os.listdir(dst) #puts everything in output folder into an images variable
+        length = len(images)
+        result = np.zeros((360,360,3), np.uint8) #window size, change to fit
+        i=1 #loops images
+        a = 1.0  #uses a and b as alpha values used later to create slide show effect
+        b = 0.0
+        img = cv2.imread(dst + images[i])
+        img = cv2.resize(img, (360, 360))
+
+
+
+        #Slide show created using while loop. Breaks loop with 'g' key.
+        while(True):
+            if(ceil(a)==0):
+                a = 1.0
+                b = 0.0
+                i = (i+1)%length
+
+                img = cv2.imread(dst + images[i])
+                img = cv2.resize(img, (360, 360))
+
+            a -= 0.01
+            b += 0.01
+
+            result = cv2.addWeighted(result, a, img, b, 0)
+            cv2.imshow("Slide Show", result)
+            key = cv2.waitKey(1) & 0xff
+            if key == ord('g'):
+                break
+            gallery_mode = False
+
+
+
     def create_flash():
         # Create a white image to act as a "camera flash"
         if side_by_side:
@@ -273,6 +312,7 @@ def detect_hand():
         # ]: Brush Larger
         # 1-9: Color Select
         # E: Eraser mode
+        # G: Gallery Mode
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
@@ -304,6 +344,9 @@ def detect_hand():
 
         elif key == ord("e"):
             color = eraser_color()
+
+        elif key == ord("g"):
+            threading.Thread(target=play_gallery, args=()).start()
 
     # If you hit quit, stop the program and destroy the windows
     cap.release()
