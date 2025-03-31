@@ -1,47 +1,20 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from watchdog.events import FileSystemEvent, FileSystemEventHandler
-from watchdog.observers import Observer
 from configparser import ConfigParser
 from datetime import datetime
 import time, threading
-from config_check import config_check
+from config_check import (load_config, get_config)
 import utils as u
-import os
 import math 
 import gallery
+import index as main_menu
 
-# Configuration
-config = ConfigParser()
-
-if not os.path.exists("./config.ini"):
-    raise Exception("Config.ini does not exist. Try copying config-example.ini as config.ini")
-
-def load_config():
-        global config
-        config = ConfigParser()
-        config.read('config.ini')
-        if not config_check(config):
-            print("There were errors while reading the config file. Please make sure all properties are in both config.ini and config-example.ini.")
-            os._exit(0)
-        print("Loaded config")
-
-load_config()
+if __name__ == '__main__':
+    load_config()
 
 # Fancy text for the lols
 print(open("./splash.txt").read())
-
-
-# Hot reload configuration
-class ConfigLoader(FileSystemEventHandler):
-    def on_modified(self, event: FileSystemEvent) -> None:
-        if (event.src_path == ".\config.ini"):
-            load_config()
-
-observer = Observer()
-observer.schedule(ConfigLoader(), ".", recursive=False)
-observer.start()
 
 # Keyboard codes used for swapping colors
 num_codes = []
@@ -49,17 +22,14 @@ num_codes = []
 for i in range(10):
     num_codes.append(ord(str(i)))
 
-# Display splash image
-u.loading_screen(True)
 
 # Initialize MediaPipe Hands
 mp_hands = mp.solutions.hands
 mp_drawing = mp.solutions.drawing_utils
 
-hands = mp_hands.Hands(min_detection_confidence=config.getfloat("tracking", "min_detection"), min_tracking_confidence=config.getfloat("tracking", "min_tracking"))
+hands = mp_hands.Hands(min_detection_confidence=get_config().getfloat("tracking", "min_detection"), min_tracking_confidence=get_config().getfloat("tracking", "min_tracking"))
 
 # Start webcam
-cap = cv2.VideoCapture(config.getint("config", "camera_id"))
 
 # the countdown to show on screen when saving
 save_countdown = -2
@@ -67,15 +37,18 @@ save_countdown = -2
 display = None
 
 def detect_hand():
-    global cap
+    # Display splash image
+    u.loading_screen(True)
+
+    cap = cv2.VideoCapture(get_config().getint("config", "camera_id"))
     """
     Changes how the drawing is displayed
     True for displaying it next to the camera
     False for displaying it on top of the camera
     """
     side_by_side = True
-    brush_size = config.getint("brushes", "default_brush_size")
-    color = u.colors[config.get("brushes", "default_color")]
+    brush_size = get_config().getint("brushes", "default_brush_size")
+    color = u.colors[get_config().get("brushes", "default_color")]
 
     # Create the drawing canvas the same size as our camera
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -103,7 +76,7 @@ def detect_hand():
     # if the finger movements should be recorded on the drawing canvas
     draw_mode = False
 
-    window_width, window_height = u.calc_window_size(config, width, height)
+    window_width, window_height = u.calc_window_size(get_config(), width, height)
     u.loading_screen(False)
     # Used to put the drawing on top of the camera feed. Math magic, don't ask me how it works lol
     def overlay_drawing(frame: cv2.Mat, drawing: cv2.Mat):
@@ -125,7 +98,7 @@ def detect_hand():
         global display
 
         # 3 2 1 0 save
-        for i in reversed(range(config.getint("saving", "count_from") + 1)):
+        for i in reversed(range(get_config().getint("saving", "count_from") + 1)):
             save_countdown = i
             print(save_countdown)
             time.sleep(1)
@@ -139,11 +112,11 @@ def detect_hand():
             display = overlay_drawing(display, drawing)
 
         # Show a "flash" over the camera
-        time.sleep(config.getfloat("saving", "flash_duration"))
+        time.sleep(get_config().getfloat("saving", "flash_duration"))
         save_countdown = -2
 
         # Save the image
-        path = config.get("saving", "path") + "/" + datetime.today().strftime("%B %d, %Y, %H %M %S") + ".jpg"
+        path = get_config().get("saving", "path") + "/" + datetime.today().strftime("%B %d, %Y, %H %M %S") + ".jpg"
         print(f"Saving {path}")
         if side_by_side:
             cv2.imwrite(path, drawing)
@@ -151,7 +124,7 @@ def detect_hand():
             cv2.imwrite(path, display)
 
         # Resume displaying the camera feed
-        time.sleep(config.getint("saving", "show_duration"))
+        time.sleep(get_config().getint("saving", "show_duration"))
         display = None
 
     def create_flash():
@@ -196,13 +169,13 @@ def detect_hand():
         # If it detects someone's hand
         if save_countdown == -2 and result.multi_hand_landmarks:
             for hand_landmarks in result.multi_hand_landmarks:
-                if config.getboolean("config", "debug"):
+                if get_config().getboolean("config", "debug"):
                     mp_drawing.draw_landmarks(frame, hand_landmarks, mp_hands.HAND_CONNECTIONS)
 
                 # Get the position of the tip of the index finger
                 x_index = int(hand_landmarks.landmark[8].x * frame.shape[1])
                 y_index = int(hand_landmarks.landmark[8].y * frame.shape[0])
-                z_index = int(hand_landmarks.landmark[8].z * config.getint("tracking", "z_scale"))
+                z_index = int(hand_landmarks.landmark[8].z * get_config().getint("tracking", "z_scale"))
 
                 thickness = -1 if draw_mode else 2
                 cv2.circle(display_drawing, (x_index, y_index), brush_size // 2, color, thickness)
@@ -212,7 +185,7 @@ def detect_hand():
                 # Get the position of the tip of the middle finger
                 middle_x = int(hand_landmarks.landmark[12].x * frame.shape[1])
                 middle_y = int(hand_landmarks.landmark[12].y * frame.shape[0])
-                if config.getboolean("config", "debug"):
+                if get_config().getboolean("config", "debug"):
                     line_color = (0, 0, 0) if not draw_mode else (255, 0, 255)
                     cv2.line(frame, (x_index, y_index), (middle_x, middle_y), line_color)
 
@@ -220,19 +193,19 @@ def detect_hand():
                 finger_distance = int(math.sqrt((middle_x - x_index)**2 + (middle_y - y_index)**2))
                 
                 # Z Position based drawing. It works, but not well. Gotta find another way
-                # if z_index < config.getint("tracking", "z_cutoff"):
+                # if z_index < get_config().getint("tracking", "z_cutoff"):
                 #     drawMode = False
                 #     continue
 
                 # Display hand position, for debugging.
-                if (config.getboolean("config", "debug") == True):
+                if (get_config().getboolean("config", "debug") == True):
                     cv2.putText(frame, f"X: {x_index}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
                     cv2.putText(frame, f"Y: {y_index}", (50, 130), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
                     cv2.putText(frame, f"Z: {z_index}", (50, 160), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
                     cv2.putText(frame, f"D: {finger_distance}", (50, 190), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
                 
                 # Fingers together = draw, otherwise don't. Also filter out false positives
-                if finger_distance > config.getint("tracking", "finger_distance") or finger_distance < 3:
+                if finger_distance > get_config().getint("tracking", "finger_distance") or finger_distance < 3:
                     draw_mode = False
                     continue
 
@@ -301,7 +274,7 @@ def detect_hand():
         elif key == ord("[") and brush_size > 1:
             print("Brush Smaller")
             brush_size = brush_size - 1
-        elif key == ord("]") and brush_size <= config.getint("brushes", "max_brush_size"):
+        elif key == ord("]") and brush_size <= get_config().getint("brushes", "max_brush_size"):
             print("Brush Larger")
             brush_size = brush_size + 1
 
@@ -313,19 +286,19 @@ def detect_hand():
         elif key == ord("e"):
             color = eraser_color()
 
-        elif key == ord("g"):
-            cap.release()
-            cv2.destroyWindow("Hand Tracking")
-            gallery.display_gallery()
-            cap = cv2.VideoCapture(config.getint("config", "camera_id"))
-            u.loading_screen(False)
-            cv2.waitKey(1)
+        # elif key == ord("g"):
+        #     cap.release()
+        #     cv2.destroyWindow("Hand Tracking")
+        #     gallery.display_gallery()
+        #     cap = cv2.VideoCapture(get_config().getint("config", "camera_id"))
+        #     u.loading_screen(False)
+        #     cv2.waitKey(1)
 
     # If you hit quit, stop the program and destroy the windows
     cap.release()
     cv2.destroyAllWindows()
+    main_menu.start()
 
 if __name__ == '__main__':
-
     # Start hand tracking thread
     detect_hand()

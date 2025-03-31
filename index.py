@@ -1,5 +1,14 @@
 import tkinter as tk
 from tkinter import ttk, PhotoImage  # themed tkinter
+from config_check import (load_config, get_config)
+
+# Config loading should be the first thing
+if __name__ == "__main__":
+    load_config()
+
+# Only import other parts once the config is loaded
+import app as finger_painting_part
+import gallery
 
 class MyApp(tk.Tk):
     def __init__(self):
@@ -34,14 +43,30 @@ class MyApp(tk.Tk):
 
     # displays image when finger painting pressed
     def on_button_click(self):
-        self.image = PhotoImage(file="school.png")  # Make sure the file is in the same directory or provide the correct path
-        self.label.config(image=self.image, text="")  # Update the label to display the image
-        self.label.grid(row=1, column=0, pady=10)
+        self.destroy()
+        finger_painting_part.detect_hand()
+        # self.image = PhotoImage(file="school.png")  # Make sure the file is in the same directory or provide the correct path
+        # self.label.config(image=self.image, text="")  # Update the label to display the image
+        # self.label.grid(row=1, column=0, pady=10)
 
     def on_button2_click(self):
-        self.label.config(text="Button Clicked", image="")  # Update text for button 2 click
+        self.destroy()
+        gallery.display_gallery()
+        # self.label.config(text="Button Clicked", image="")  # Update text for button 2 click
 
+    
+
+def start():
+    app = MyApp()
+    def stop(event):
+        app.destroy()
+
+    # Exit the app easily
+    app.bind_all("<Control-c>", stop)
+    app.bind_all("<q>", stop)
+
+    # Start 'er up!
+    app.mainloop()
 
 if __name__ == "__main__":
-    app = MyApp()
-    app.mainloop()
+    start()

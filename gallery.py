@@ -3,6 +3,7 @@ import os
 import numpy as np
 from math import ceil
 import utils as u
+import index as main_menu
 
 WINDOW_NAME = "Slideshow"
 
@@ -35,8 +36,10 @@ def display_gallery():
 
         result = cv2.addWeighted(result, a, img, b, 0)
         cv2.imshow(WINDOW_NAME, result)
+
+        # Exit the gallery
         key = cv2.waitKey(1) & 0xff
         if key == ord('g'):
             cv2.destroyWindow(WINDOW_NAME)
-            u.loading_screen(True)
+            main_menu.start()
             break
