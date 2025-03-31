@@ -10,7 +10,7 @@ from config_check import config_check
 import utils as u
 import os
 import math 
-from math import ceil
+import gallery
 
 # Configuration
 config = ConfigParser()
@@ -50,8 +50,7 @@ for i in range(10):
     num_codes.append(ord(str(i)))
 
 # Display splash image
-splash = cv2.imread("splash.jpg")
-cv2.imshow("Hand Tracking", splash)
+u.loading_screen(True)
 
 # Initialize MediaPipe Hands
 mp_hands = mp.solutions.hands
@@ -68,6 +67,7 @@ save_countdown = -2
 display = None
 
 def detect_hand():
+    global cap
     """
     Changes how the drawing is displayed
     True for displaying it next to the camera
@@ -104,9 +104,9 @@ def detect_hand():
     draw_mode = False
 
     window_width, window_height = u.calc_window_size(config, width, height)
-
+    u.loading_screen(False)
     # Used to put the drawing on top of the camera feed. Math magic, don't ask me how it works lol
-    def overlay_drawing(frame: cv2.Mat):
+    def overlay_drawing(frame: cv2.Mat, drawing: cv2.Mat):
         gray = cv2.cvtColor(drawing, cv2.COLOR_BGR2GRAY)
         _, invert = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY_INV)
         invert = cv2.cvtColor(invert, cv2.COLOR_GRAY2BGR)
@@ -136,7 +136,7 @@ def detect_hand():
         _, display = cap.read()
         display = cv2.flip(display, 1)
         if not side_by_side:
-            display = overlay_drawing(display)
+            display = overlay_drawing(display, drawing)
 
         # Show a "flash" over the camera
         time.sleep(config.getfloat("saving", "flash_duration"))
@@ -153,44 +153,6 @@ def detect_hand():
         # Resume displaying the camera feed
         time.sleep(config.getint("saving", "show_duration"))
         display = None
-
-    #Kristen Here: Gallery uses saved images to make a small slideshow. Start slideshow with 'g' and end slideshow with 'g'. Currently slideshow does not display in main display but creates a new window.
-    def play_gallery():
-        gallery_mode = True
-        
-        dst = "./output/"
-        images = os.listdir(dst) #puts everything in output folder into an images variable
-        length = len(images)
-        result = np.zeros((360,360,3), np.uint8) #window size, change to fit
-        i=1 #loops images
-        a = 1.0  #uses a and b as alpha values used later to create slide show effect
-        b = 0.0
-        img = cv2.imread(dst + images[i])
-        img = cv2.resize(img, (360, 360))
-
-
-
-        #Slide show created using while loop. Breaks loop with 'g' key.
-        while(True):
-            if(ceil(a)==0):
-                a = 1.0
-                b = 0.0
-                i = (i+1)%length
-
-                img = cv2.imread(dst + images[i])
-                img = cv2.resize(img, (360, 360))
-
-            a -= 0.01
-            b += 0.01
-
-            result = cv2.addWeighted(result, a, img, b, 0)
-            cv2.imshow("Slide Show", result)
-            key = cv2.waitKey(1) & 0xff
-            if key == ord('g'):
-                break
-            gallery_mode = False
-
-
 
     def create_flash():
         # Create a white image to act as a "camera flash"
@@ -218,7 +180,6 @@ def detect_hand():
             else:
                 d = display
             display_image(d)
-            cv2.waitKey(1)
             continue
 
         # If the camera feed couldn't be read
@@ -231,6 +192,7 @@ def detect_hand():
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = hands.process(rgb_frame)
 
+        display_drawing = drawing.copy()
         # If it detects someone's hand
         if save_countdown == -2 and result.multi_hand_landmarks:
             for hand_landmarks in result.multi_hand_landmarks:
@@ -241,6 +203,11 @@ def detect_hand():
                 x_index = int(hand_landmarks.landmark[8].x * frame.shape[1])
                 y_index = int(hand_landmarks.landmark[8].y * frame.shape[0])
                 z_index = int(hand_landmarks.landmark[8].z * config.getint("tracking", "z_scale"))
+
+                thickness = -1 if draw_mode else 2
+                cv2.circle(display_drawing, (x_index, y_index), brush_size // 2, color, thickness)
+                if side_by_side:
+                    cv2.circle(frame, (x_index, y_index), brush_size // 2, color, thickness)
 
                 # Get the position of the tip of the middle finger
                 middle_x = int(hand_landmarks.landmark[12].x * frame.shape[1])
@@ -276,6 +243,7 @@ def detect_hand():
 
                 # Draw on the canvas
                 cv2.line(drawing, (x_prev, y_prev), (x_index, y_index), color, brush_size) #sets drawing color to white
+                # cv2.line(display_drawing, (x_prev, y_prev), (x_index, y_index), color, brush_size) #sets drawing color to white
                 draw_mode = True
 
                 # Update the hand position
@@ -292,10 +260,10 @@ def detect_hand():
 
         # Show the drawing next to the camera
         if (side_by_side == True):
-            frame = np.hstack((frame, drawing))
+            frame = np.hstack((frame, display_drawing))
         # Or overlay the drawing on the camera
         else:
-            frame = overlay_drawing(frame)
+            frame = overlay_drawing(frame, display_drawing)
         
         # Show the result
         display_image(frame)
@@ -346,7 +314,12 @@ def detect_hand():
             color = eraser_color()
 
         elif key == ord("g"):
-            threading.Thread(target=play_gallery, args=()).start()
+            cap.release()
+            cv2.destroyWindow("Hand Tracking")
+            gallery.display_gallery()
+            cap = cv2.VideoCapture(config.getint("config", "camera_id"))
+            u.loading_screen(False)
+            cv2.waitKey(1)
 
     # If you hit quit, stop the program and destroy the windows
     cap.release()

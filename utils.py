@@ -1,5 +1,6 @@
 from configparser import ConfigParser
 import numpy as np
+import cv2
 
 def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int):
     screen_width = config.getint("screen", "width")
@@ -66,3 +67,11 @@ def switch_overlay_mode(drawing, new_mode):
         set_color
     ]
     return drawing
+
+splash = cv2.imread("./splash.jpg")
+def loading_screen(new_state: bool):
+    if not new_state:
+        cv2.destroyWindow("Loading...")
+    else:
+        cv2.imshow("Loading...", splash)
+        cv2.waitKey(1)
