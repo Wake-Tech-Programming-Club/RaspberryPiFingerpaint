@@ -1,17 +1,16 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from configparser import ConfigParser
 from datetime import datetime
 import time, threading
 from config_check import (load_config, get_config)
 import utils as u
 import math 
-import gallery
-import index as main_menu
 
 if __name__ == '__main__':
     load_config()
+
+import index as main_menu
 
 # Fancy text for the lols
 print(open("./splash.txt").read())
