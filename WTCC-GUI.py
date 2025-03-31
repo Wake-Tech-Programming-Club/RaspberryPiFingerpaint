@@ -8,15 +8,16 @@ class MyApp(tk.Tk):
 
         # create window
         self.title("WTCC: Finger Painting")
-        self.geometry("400x300")
+        self.geometry("500x400")
         # self.configure(bg='navyblue')
         self.create_widgets()
         self.image = None
 
     def create_widgets(self):
         # label
-        self.label = ttk.Label(self, text="Choose an option below:")
-        # font=("Times New Roman, 25))
+        self.label = ttk.Label(self, 
+		text="Choose an option below:",
+        	font=("Times New Roman", 25))
         self.label.grid(row=0, column=0, columnspan=2, pady=10)
 
         # button 1
