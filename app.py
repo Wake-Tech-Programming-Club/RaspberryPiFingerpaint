@@ -180,6 +180,7 @@ def detect_hand():
             else:
                 d = display
             display_image(d)
+            cv2.waitKey(1)
             continue
 
         # If the camera feed couldn't be read
@@ -192,7 +193,6 @@ def detect_hand():
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = hands.process(rgb_frame)
 
-        display_drawing = drawing.copy()
         # If it detects someone's hand
         if save_countdown == -2 and result.multi_hand_landmarks:
             for hand_landmarks in result.multi_hand_landmarks:
@@ -203,11 +203,6 @@ def detect_hand():
                 x_index = int(hand_landmarks.landmark[8].x * frame.shape[1])
                 y_index = int(hand_landmarks.landmark[8].y * frame.shape[0])
                 z_index = int(hand_landmarks.landmark[8].z * config.getint("tracking", "z_scale"))
-
-                thickness = -1 if draw_mode else 2
-                cv2.circle(display_drawing, (x_index, y_index), brush_size // 2, color, thickness)
-                if side_by_side:
-                    cv2.circle(frame, (x_index, y_index), brush_size // 2, color, thickness)
 
                 # Get the position of the tip of the middle finger
                 middle_x = int(hand_landmarks.landmark[12].x * frame.shape[1])
@@ -243,7 +238,6 @@ def detect_hand():
 
                 # Draw on the canvas
                 cv2.line(drawing, (x_prev, y_prev), (x_index, y_index), color, brush_size) #sets drawing color to white
-                # cv2.line(display_drawing, (x_prev, y_prev), (x_index, y_index), color, brush_size) #sets drawing color to white
                 draw_mode = True
 
                 # Update the hand position
@@ -260,10 +254,10 @@ def detect_hand():
 
         # Show the drawing next to the camera
         if (side_by_side == True):
-            frame = np.hstack((frame, display_drawing))
+            frame = np.hstack((frame, drawing))
         # Or overlay the drawing on the camera
         else:
-            frame = overlay_drawing(frame, display_drawing)
+            frame = overlay_drawing(frame, drawing)
         
         # Show the result
         display_image(frame)
