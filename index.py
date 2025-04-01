@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, PhotoImage  # themed tkinter
 from config_check import (load_config, get_config)
+import utils as u
 
 # Config loading should be the first thing
 if __name__ == "__main__":
@@ -17,15 +18,24 @@ class MyApp(tk.Tk):
 
         # create window
         self.title("WTCC: Finger Painting")
-        self.geometry("500x400")
+        width = get_config().getint("screen", "width")
+        height = get_config().getint("screen", "height")
+        (x, y) = u.calc_window_size(config=get_config(), cam_width=width, cam_height=height)
+
+        self.geometry(f"{x}x{y}")
         # self.configure(bg='navyblue')
+        # self.image = None
+        self.slideshow = tk.Label(self)
+        self.slideshow.grid(row=1, column=0, columnspan=3, pady=10)
         self.create_widgets()
-        self.image = None
+        
+        gallery.init()
+        gallery.display_gallery(self)
 
     def create_widgets(self):
         # label
         self.label = ttk.Label(self, 
-		text="Choose an option below:",
+		text="WTCC: Finger Painting",
         	font=("Times New Roman", 25))
         self.label.grid(row=0, column=0, columnspan=2, pady=10)
 
@@ -34,8 +44,8 @@ class MyApp(tk.Tk):
         self.button1.grid(row=2, column=0, pady=5, sticky="ew")
 
         # button 2
-        self.button2 = ttk.Button(self, text="Slideshow", command=self.on_button2_click)
-        self.button2.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
+        #self.button2 = ttk.Button(self, text="Slideshow", command=self.play_gallery_image)
+        #self.button2.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
 
         # expanding columns if window resized
         self.grid_columnconfigure(0, weight=1)
@@ -49,11 +59,9 @@ class MyApp(tk.Tk):
         # self.label.config(image=self.image, text="")  # Update the label to display the image
         # self.label.grid(row=1, column=0, pady=10)
 
-    def on_button2_click(self):
-        self.destroy()
-        gallery.display_gallery()
+    def play_gallery_image(self):
+        gallery.display_gallery(self)
         # self.label.config(text="Button Clicked", image="")  # Update text for button 2 click
-
     
 
 def start():

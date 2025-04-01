@@ -4,50 +4,75 @@ import numpy as np
 from config_check import (load_config, get_config)
 from math import ceil
 import utils as u
-import index as main_menu
-
-WINDOW_NAME = "Slideshow"
+# import index as main_menu
+import tkinter as tk
+from PIL import Image, ImageTk
 
 if __name__ == '__main__':
     load_config()
 
-#Kristen Here: Gallery uses saved images to make a small slideshow. Start slideshow with 'g' and end slideshow with 'g'.
-#Currently slideshow does not display in main display but creates a new window.
-def display_gallery():
-    dst = "./output/"
-    images = os.listdir(dst) #puts everything in output folder into an images variable
+i = 0
+a = 1.0
+b = 0.0
+dst = "./output/"
+img = None
+images = None
+result = None
+
+#Kristen Here: Gallery uses saved images to make a small slideshow. Starts automatically in the main menu
+def init():
+    global i, a, b, img, result, images
+    
+    #window size, change to fit
     width = get_config().getint("gallery", "image_width")
     height = get_config().getint("gallery", "image_height")
-    result = np.zeros((height, width,3), np.uint8) #window size, change to fit
+    result = np.full((height, width,3), 255, np.uint8)
     
-    i = 0 #loops images
+    #puts everything in output folder into an images variable
+    images = os.listdir(dst)
     
-    a = 1.0  #uses a and b as alpha values used later to create slide show effect
+    #loops images
+    i = 0
+    
+    #uses a and b as alpha values used later to create slide show effect
+    a = 1.0
     b = 0.0
 
+    # read the first image
     img = cv2.imread(dst + images[i])
     img = cv2.resize(img, (width, height))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    i += 1
 
-    #Slide show created using while loop. Breaks loop with 'g' key.
-    while(True):
-        if(ceil(a)==0):
-            a = 1.0
-            b = 0.0
+def display_gallery(tk: tk.Tk):
+    global i, a, b, img, result
 
-            i += 1
-            img = cv2.imread(dst + images[i])
-            img = cv2.resize(img, (width, height))
-            if i == len(images) - 1:
-                i = 0
-        a -= 0.01
-        b += 0.01
+    width = get_config().getint("gallery", "image_width")
+    height = get_config().getint("gallery", "image_height")
 
-        result = cv2.addWeighted(result, a, img, b, 0)
-        cv2.imshow(WINDOW_NAME, result)
+    # Next image is ready. reset alpha and read next image
+    if(ceil(a)==0):
+        a = 1.0
+        b = 0.0
 
-        # Exit the gallery
-        key = cv2.waitKey(1) & 0xff
-        if key == ord('g'):
-            cv2.destroyWindow(WINDOW_NAME)
-            main_menu.start()
-            break
+        img = cv2.imread(dst + images[i])
+        img = cv2.resize(img, (width, height))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        i += 1
+
+        # We've gone through all the images!
+        if i == len(images) - 1:
+            i = 0
+    
+    # Fade a bit
+    a -= 0.01
+    b += 0.01
+
+    # Convert to tk and display result
+    result = cv2.addWeighted(result, a, img, b, 0)
+    display_image = Image.fromarray(result)
+    display_image = ImageTk.PhotoImage(display_image)
+
+    tk.slideshow.imgtk = display_image
+    tk.slideshow.config(image=display_image)
+    tk.after(10, tk.play_gallery_image)
