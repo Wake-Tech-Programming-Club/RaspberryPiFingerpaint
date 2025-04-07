@@ -250,3 +250,4 @@ def set_color(tk: tk.Tk, new_color):
 def set_brush_size(new_size):
     global brush_size
     brush_size = new_size
+
