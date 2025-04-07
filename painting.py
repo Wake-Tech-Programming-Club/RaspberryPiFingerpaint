@@ -108,7 +108,7 @@ def init():
     cap = cv2.VideoCapture(get_config().getint("config", "camera_id"))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    window_width, window_height = u.calc_window_size(get_config(), width, height)
+    window_width, window_height = u.calc_window_size(get_config(), width, height, True)
     color = u.colors[get_config().get("brushes", "default_color")]
     new_drawing()
     x_prev = 0

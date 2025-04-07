@@ -2,9 +2,9 @@ from configparser import ConfigParser
 import numpy as np
 import cv2
 
-def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int):
+def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int, camera_mode: bool = False):
     screen_width = config.getint("screen", "width")
-    screen_height = min(config.getint("screen", "height"), config.getint("camera", "max_height"))
+    screen_height = config.getint("camera", "max_height")if camera_mode else config.getint("screen", "height")
 
     cam_aspect_ratio = cam_width / cam_height
     screen_aspect_ratio = screen_width / screen_height
@@ -20,7 +20,7 @@ def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int):
 
  #(b, g, r)
 colors = {
-    "red": (22, 22, 112),
+    "Red": (22, 22, 112),
     "Orange": (0, 129, 235),
     "Yellow": (76, 207, 255),
     "Green": (37, 116, 97),
