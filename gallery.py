@@ -30,6 +30,11 @@ def init():
     
     #puts everything in output folder into an images variable
     images = os.listdir(dst)
+
+    # Filter the list to only include image files (e.g., jpg, png, etc.)
+    image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
+    images = [img for img in images if any(img.lower().endswith(ext) for ext in image_extensions)]
+
     
     #loops images
     i = 0
@@ -61,6 +66,7 @@ def display_gallery(tk: tk.Tk):
         i += 1
 
         # We've gone through all the images!
+        # maybe change this so it checks if files end in .jpg instead. Change to -2 if issue.
         if i == len(images) - 1:
             i = 0
     

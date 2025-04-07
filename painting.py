@@ -256,3 +256,4 @@ def swap_camera_mode():
     global side_by_side, drawing
     side_by_side = not side_by_side
     drawing = u.switch_overlay_mode(drawing, side_by_side)
+
