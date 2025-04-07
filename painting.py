@@ -45,9 +45,10 @@ def eraser_color():
     else:
         return (0, 0, 0)
 
-def new_drawing():
+def new_drawing(self=None):
+    global drawing
     bg_color = 255 if side_by_side else 0
-    return np.full((height,width,3), bg_color, np.uint8)
+    drawing = np.full((height,width,3), bg_color, np.uint8)
 
 def create_flash():
     # Create a white image to act as a "camera flash"
@@ -109,7 +110,7 @@ def init():
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     window_width, window_height = u.calc_window_size(get_config(), width, height)
     color = u.colors[get_config().get("brushes", "default_color")]
-    drawing = new_drawing()
+    new_drawing()
     x_prev = 0
     y_prev = 0
     draw_mode = False
@@ -251,3 +252,9 @@ def set_color(tk: tk.Tk, new_color):
 def set_brush_size(new_size):
     global brush_size
     brush_size = new_size
+
+def swap_camera_mode():
+    global side_by_side, drawing
+    side_by_side = not side_by_side
+    drawing = u.switch_overlay_mode(drawing, side_by_side)
+

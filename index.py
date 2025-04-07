@@ -60,27 +60,50 @@ class MyApp(tk.Tk):
     def toolbar_init(self):
         self.button1.destroy()
         
+        self.column = 0
+
         self.toolbar = ttk.Frame(self, padding=10, relief="solid", borderwidth=2, style='info.TFrame')
-        self.toolbar.grid(row=2, column=0)
+        self.toolbar.grid(row=2, column=self.column)
         self.toolbar.grid_columnconfigure(0, weight=1)
         
+        self.column += 1
+
         # Back to main menu button
         self.back = ttk.Button(self.toolbar, text="Back", command=self.start_gallery_mode)
-        self.back.grid(row=3, column=0)
+        self.back.grid(row=3, column=self.column)
         
+        self.column += 1
+
+        self.clear = ttk.Button(self.toolbar, text="Clear Drawing", command=painting.new_drawing)
+        self.clear.grid(row=3, column=self.column)
+
+        self.column += 1
+
         # Eraser Mode
         self.eraser = ttk.Button(self.toolbar, text="Eraser", command=lambda: painting.set_color(self, painting.eraser_color()))
-        self.eraser.grid(row=3, column=1)
+        self.eraser.grid(row=3, column=self.column)
 
         # Color Selector
+        self.column += 1
+        self.color = get_config().get("brushes", "default_color")
         self.set_color()
 
         # Brush Size
+        self.column += 2
         self.brush_size = ttk.Scale(self.toolbar, from_=1, to=get_config().getint("brushes", "max_brush_size"), value=self.brush_size, command=self.set_brush_size)
-        self.brush_size.grid(row=3, column=3)
+        self.brush_size.grid(row=3, column=self.column)
+        self.column += 1
         self.brush_size_label = ttk.Label(self.toolbar, text="Brush Size")
-        self.brush_size_label.grid(row=2, column=3)
+        self.brush_size_label.grid(row=2, column=self.column)
         self.set_brush_size(get_config().getint("brushes", "default_brush_size"))
+
+        # Camera Mode
+        self.column += 1
+        self.camera_mode = ttk.Button(self.toolbar, text="Camera Mode", command=self.set_camera_mode)
+        self.camera_mode.grid(row=3, column=self.column)
+
+    def set_camera_mode(self):
+        painting.swap_camera_mode()
 
     def set_color(self):
         if hasattr(self, "color_panel"):
@@ -95,7 +118,7 @@ class MyApp(tk.Tk):
             )
             self.color_panel.tag_bind(btn, "<Button-1>", lambda e, c=color_name: painting.set_color(self, c))
         
-        self.color_panel.grid(row=3, column=2)
+        self.color_panel.grid(row=3, column=3)
     
     def set_brush_size(self, size):
         size = int(float(size))
