@@ -33,7 +33,28 @@ def init():
 
     # Filter the list to only include image files (e.g., jpg, png, etc.)
     image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
-    images = [img for img in images if any(img.lower().endswith(ext) for ext in image_extensions)]
+    #images = [img for img in images if any(img.lower().endswith(ext) for ext in image_extensions)]
+    
+    # Create an empty list to hold the valid image filenames
+    valid_images = []
+
+    # Loops through all files in the images list
+    for img in images:
+        # Converts the file name to lowercase and check if it ends with any valid image extension
+        is_valid_image = False
+        for ext in image_extensions:
+            if img.lower().endswith(ext):
+                is_valid_image = True
+                break  # If a match is found, no need to check further extensions
+        
+        # If it's a valid image, add it to the valid_images list
+        if is_valid_image:
+            valid_images.append(img)
+
+    # Replace the original images list with the filtered valid images
+    images = valid_images
+
+
 
     
     #loops images
