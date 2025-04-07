@@ -60,7 +60,7 @@ def load_config():
 # Hot reload configuration
 class ConfigLoader(FileSystemEventHandler):
     def on_modified(self, event: FileSystemEvent) -> None:
-        if (event.src_path == ".\config.ini"):
+        if(event.src_path == ".\config.ini"):
             load_config()
 
 def start_observer():
