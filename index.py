@@ -1,4 +1,5 @@
 import math
+import threading
 import tkinter as tk
 from tkinter import ttk, StringVar  # themed tkinter
 from config_check import (load_config, get_config)
@@ -46,7 +47,7 @@ class MyApp(tk.Tk):
 
         # button 1
         self.button1 = ttk.Button(self, text="Finger Painting", command=self.start_painting_mode)
-        self.button1.grid(row=2, column=0, pady=5, sticky="ew")
+        self.button1.grid(row=2, column=0, ipady=5, sticky="e", ipadx=20)
 
         # Drawing UI
         # button 2
@@ -101,9 +102,17 @@ class MyApp(tk.Tk):
         self.column += 1
         self.camera_mode = ttk.Button(self.toolbar, text="Camera Mode", command=self.set_camera_mode)
         self.camera_mode.grid(row=3, column=self.column)
+        
+        # Save Button
+        self.column += 1
+        self.save_button = ttk.Button(self.toolbar, text="Save", command=self.save_image)
+        self.save_button.grid(row=3, column=self.column)
 
     def set_camera_mode(self):
         painting.swap_camera_mode()
+
+    def save_image(self):
+        threading.Thread(target=painting.save_image, args=()).start()
 
     def set_color(self):
         if hasattr(self, "color_panel"):

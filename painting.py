@@ -116,8 +116,8 @@ def init():
     draw_mode = False
     side_by_side = True
 
-def next_frame(tk: tk.Tk):
-    tk.after(1, tk.process_frame)
+def next_frame(tk: tk.Tk, delay=1):
+    tk.after(delay, tk.process_frame)
 
 def display_image(tk: tk.Tk, img: cv2.Mat):
     display_result = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -139,22 +139,18 @@ def process_frame(tk: tk.Tk):
             fl = np.hstack((fl, fl))
         display_image(tk, fl)
         # cv2.waitKey(1)
-        return next_frame(tk)
+        return
     
     # If an image was recently saved, display the saved picture
     elif display is not None:
-        if side_by_side:
-            d = np.hstack((display, drawing))
-        else:
-            d = display
-        display_image(tk, d)
-        return next_frame(tk)
+        display_image(tk, np.hstack((display, drawing)) if side_by_side else display)
+        return
 
     # If the camera feed couldn't be read
     elif not ret:
         draw_mode = False
-        return next_frame(tk)
-        
+        return next_frame(tk, 100)
+
     # Detect hands
     frame = cv2.flip(frame, 1)
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
