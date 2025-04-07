@@ -61,7 +61,8 @@ def display_gallery(tk: tk.Tk):
         i += 1
 
         # We've gone through all the images!
-        if i == len(images) - 1:
+        # maybe change this so it checks if files end in .jpg instead.
+        if i == len(images) - 2:
             i = 0
     
     # Fade a bit
