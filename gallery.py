@@ -29,8 +29,14 @@ def init():
     result = np.full((height, width,3), 255, np.uint8)
     
     #puts everything in output folder into an images variable
+    #here is where we fix omitting the .md
     images = os.listdir(dst)
+    for i in images:
+        if images == 'readme.md':
+            continue    
     
+    print(images)
+
     #loops images
     i = 0
     

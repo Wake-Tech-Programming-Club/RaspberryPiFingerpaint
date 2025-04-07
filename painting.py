@@ -210,6 +210,7 @@ def process_frame(tk: tk.Tk):
 
             # Draw on the canvas
             cv2.line(drawing, (x_prev, y_prev), (x_index, y_index), color, brush_size) #sets drawing color to white
+            cv2.circle(frame, center=(x_index, y_index), radius=5, color=color, thickness=-10)
             # cv2.line(display_drawing, (x_prev, y_prev), (x_index, y_index), color, brush_size) #sets drawing color to white
             draw_mode = True
 
