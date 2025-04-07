@@ -20,7 +20,7 @@ def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int):
 
  #(b, g, r)
 colors = {
-    "Red": (22, 22, 112),
+    "red": (22, 22, 112),
     "Orange": (0, 129, 235),
     "Yellow": (76, 207, 255),
     "Green": (37, 116, 97),
