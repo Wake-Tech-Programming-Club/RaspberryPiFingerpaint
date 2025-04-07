@@ -73,6 +73,6 @@ def display_gallery(tk: tk.Tk):
     display_image = Image.fromarray(result)
     display_image = ImageTk.PhotoImage(display_image)
 
-    tk.slideshow.imgtk = display_image
-    tk.slideshow.config(image=display_image)
+    tk.image.imgtk = display_image
+    tk.image.config(image=display_image)
     tk.after(10, tk.play_gallery_image)

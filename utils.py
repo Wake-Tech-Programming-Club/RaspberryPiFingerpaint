@@ -20,13 +20,13 @@ def calc_window_size(config: ConfigParser, cam_width: int, cam_height: int):
 
  #(b, g, r)
 colors = {
-    "red": (22, 22, 112),
-    "orange": (0, 129, 235),
-    "yellow": (76, 207, 255),
-    "green": (37, 116, 97),
-    "blue": (255, 153, 0),
-    "purple": (153, 0, 136),
-    "pink": (182, 171, 243)
+    "Red": (22, 22, 112),
+    "Orange": (0, 129, 235),
+    "Yellow": (76, 207, 255),
+    "Green": (37, 116, 97),
+    "Blue": (255, 153, 0),
+    "Purple": (153, 0, 136),
+    "Pink": (182, 171, 243)
 }
 
 def color_swap(num_codes):
