@@ -29,6 +29,7 @@ def init():
     result = np.full((height, width,3), 255, np.uint8)
     
     #puts everything in output folder into an images variable
+    #here is where we fix omitting the .md
     images = os.listdir(dst)
 
     # Filter the list to only include image files (e.g., jpg, png, etc.)
@@ -53,10 +54,9 @@ def init():
 
     # Replace the original images list with the filtered valid images
     images = valid_images
+   
+    print(images)
 
-
-
-    
     #loops images
     i = 0
     
