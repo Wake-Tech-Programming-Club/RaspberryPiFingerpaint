@@ -56,6 +56,9 @@ Paint a masterpiece with nothing but your finger and a webcam!
 - **Wrong camera?**
   - Change the value of `camera_id` in `config.ini` and restart. Keep trying until you find the right camera.
 
+  - **Can't run the program at all?**
+  - Check that the output folder has a copy of splash.jpg in it and that the readme file's name is changed to z-readme.md
+
 ---
 
 
