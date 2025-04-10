@@ -29,6 +29,10 @@ def init():
     height = get_config().getint("gallery", "image_height")
     result = np.full((height, width,3), 255, np.uint8)
     
+    # Create the output folder if it doesn't exist
+    if not os.path.exists("./output"):
+        os.makedirs("./output")
+
     #puts everything in output folder into an images variable
     #here is where we fix omitting the .md
     images = os.listdir(dst)
@@ -36,7 +40,7 @@ def init():
     # Filter the list to only include image files (e.g., jpg, png, etc.)
     image_extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.tiff']
     #images = [img for img in images if any(img.lower().endswith(ext) for ext in image_extensions)]
-    
+
     # Create an empty list to hold the valid image filenames
     valid_images = []
 
@@ -58,9 +62,9 @@ def init():
 
     #copies the splash.jpg image and puts it in output folder and images list if no other images are available
     if not valid_images:
-        shutil.copy("splash.jpg", "./output/")
+        shutil.copy("school.png", "./output/1.png")
+        shutil.copy("school.png", "./output/2.png")
         images = os.listdir(dst)
-        print(images)
 
     #loops images
     i = 0
@@ -93,7 +97,7 @@ def display_gallery(tk: tk.Tk):
 
         # We've gone through all the images!
         # maybe change this so it checks if files end in .jpg instead. Change to -2 if issue.
-        if i == len(images) - 1:
+        if i == len(images):
             i = 0
     
     # Fade a bit
