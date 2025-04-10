@@ -1,5 +1,6 @@
 import cv2
 import os
+import shutil
 import numpy as np
 from config_check import (load_config, get_config)
 from math import ceil
@@ -39,8 +40,6 @@ def init():
     # Create an empty list to hold the valid image filenames
     valid_images = []
 
-    
-
     # Loops through all files in the images list
     for img in images:
         # Converts the file name to lowercase and check if it ends with any valid image extension
@@ -57,12 +56,11 @@ def init():
     # Replace the original images list with the filtered valid images
     images = valid_images
 
-    #adds the splash image to images list if no images are present
+    #copies the splash.jpg image and puts it in output folder and images list if no other images are available
     if not valid_images:
-        valid_images.append("splash.jpg")
-
-   
-    print(images)
+        shutil.copy("splash.jpg", "./output/")
+        images = os.listdir(dst)
+        print(images)
 
     #loops images
     i = 0
