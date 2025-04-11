@@ -72,11 +72,13 @@ class MyApp(tk.Tk):
         # Back to main menu button
         self.back = ttk.Button(self.toolbar, text="Back", command=self.start_gallery_mode)
         self.back.grid(row=3, column=self.column)
+
         
         self.column += 1
 
         self.clear = ttk.Button(self.toolbar, text="Clear Drawing", command=painting.new_drawing)
         self.clear.grid(row=3, column=self.column)
+        self.bind('c', painting.new_drawing)
 
         self.column += 1
 
@@ -177,6 +179,24 @@ def start():
     # Exit the app easily
     app.bind_all("<Control-c>", stop)
     app.bind_all("<q>", stop)
+
+    # Add other key bindings
+    def start_gallery_mode(event):
+        app.start_gallery_mode()
+
+    def start_painting_mode(event):
+        app.start_painting_mode()
+    
+    def save_image(event):
+        app.save_image()
+
+    def set_camera_mode(event):
+        app.set_camera_mode()
+
+    app.bind_all("<g>", start_gallery_mode)
+    app.bind_all("<p>", start_painting_mode)
+    app.bind_all("<m>", set_camera_mode)
+    app.bind_all("<s>", save_image)
 
     # Start 'er up!
     app.mainloop()
