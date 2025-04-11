@@ -28,6 +28,7 @@ class MyApp(ctk.CTk):
 
         # create window
         self.title("WTCC: Finger Painting")
+        self.iconbitmap("icon.ico")
         width = get_config().getint("screen", "width")
         height = get_config().getint("screen", "height")
         
