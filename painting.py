@@ -7,7 +7,8 @@ from config_check import get_config
 import utils as u
 import math 
 import tkinter as tk
-from PIL import Image, ImageTk
+from PIL import Image
+from customtkinter import CTkImage
 
 if __name__ == '__main__':
     raise RuntimeError("This file should not be run directly. Use index.py.")
@@ -121,11 +122,10 @@ def next_frame(tk: tk.Tk, delay=1):
 
 def display_image(tk: tk.Tk, img: cv2.Mat):
     display_result = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    display_result = ImageTk.PhotoImage(display_result)
+    display_result = CTkImage(display_result, size=(display_result.size))
     tk.image.imgtk = display_result
-    tk.image.config(image=display_result)
+    tk.image.configure(image=display_result)
     next_frame(tk)
-    # cv2.imshow("Hand Tracking", img)
 
 
 def process_frame(tk: tk.Tk):
