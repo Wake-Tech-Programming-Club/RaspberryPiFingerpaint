@@ -1,7 +1,7 @@
-import math
 import threading
+from PIL import Image
 import tkinter as tk
-from tkinter import ttk, StringVar  # themed tkinter
+import customtkinter as ctk
 from config_check import (load_config, get_config)
 import utils as u
 
@@ -13,10 +13,15 @@ if __name__ == "__main__":
 import painting
 import gallery
 
-class MyApp(tk.Tk):
+def get_icon(path: str):
+    return ctk.CTkImage(Image.open(f"./icons/{path}"), size=(40,40))
+
+class MyApp(ctk.CTk):
     in_main_menu = True
     color = None
     brush_size = get_config().getint("brushes", "default_brush_size")
+    font = "Arial Bold"
+    ctk.set_default_color_theme("dark-blue")
     def __init__(self):
         # constructor
         super().__init__()
@@ -25,88 +30,92 @@ class MyApp(tk.Tk):
         self.title("WTCC: Finger Painting")
         width = get_config().getint("screen", "width")
         height = get_config().getint("screen", "height")
-        (x, y) = u.calc_window_size(config=get_config(), cam_width=width, cam_height=height)
-
-        self.geometry(f"{x}x{y}")
-        # self.configure(bg='navyblue')
-        # self.image = None
-        self.image = tk.Label(self)
-        self.image.grid(row=1, column=0, columnspan=3, pady=10)
-
-        self.drawing = tk.Label(self)
-        self.drawing.grid(row=2, column=1, columnspan=3, pady=10)
         
-        self.start_gallery_mode()
-
-    def create_widgets(self):
-        # label
-        self.label = ttk.Label(self, 
-		text="WTCC: Finger Painting",
-        	font=("Times New Roman", 25))
-        self.label.grid(row=0, column=0, columnspan=2, pady=10)
-
-        # button 1
-        self.button1 = ttk.Button(self, text="Finger Painting", command=self.start_painting_mode)
-        self.button1.grid(row=2, column=0, ipady=5, sticky="e", ipadx=20)
-
-        # Drawing UI
-        # button 2
-        #self.button2 = ttk.Button(self, text="Slideshow", command=self.play_gallery_image)
-        #self.button2.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
-
-        # expanding columns if window resized
+        (x, y) = u.calc_window_size(config=get_config(), cam_width=width, cam_height=height)
+        self.geometry(f"{x}x{y}")
+        self.grid_anchor("center")
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
+
+        # Header
+        self.label = ctk.CTkLabel(self, text="WTCC: Finger Painting", font=(self.font, 50))
+        self.label.grid(row=0, column=1, pady=20)
+
+        # The gallery display or finger painting
+        self.image = ctk.CTkLabel(self, text="")
+        self.image.grid(row=1, column=1, pady=10)
+        
+        # Creates the widgets and starts the slideshow
+        self.start_gallery_mode()
+        # self.toolbar_init() # Only used for testing styling changes
+
+    def create_widgets(self):
+        # Finger Painting Button
+        self.button1 = ctk.CTkButton(self, text="Start Finger Painting", font=(self.font, 25), command=self.start_painting_mode)
+        self.button1.grid(row=2, column=1, ipady=5, ipadx=20, pady=20)
 
     def toolbar_init(self):
         self.button1.destroy()
         
         self.column = 0
 
-        self.toolbar = ttk.Frame(self, padding=10, relief="solid", borderwidth=2, style='info.TFrame')
-        self.toolbar.grid(row=2, column=self.column)
-        self.toolbar.grid_columnconfigure(0, weight=1)
+        self.toolbar = ctk.CTkFrame(self)
+        self.toolbar.grid(row=3, column=1, pady=20)
+        self.toolbar.grid_anchor("center")
         
         self.column += 1
+
+        def make_button(cmd, icon):
+            btn = ctk.CTkButton(self.toolbar, text="", image=get_icon(icon), command=cmd, height=40, width=40)
+            btn.grid(row=3, column=self.column, padx=10, pady=10)
+            return btn
+        
+        def make_label(text, columnspan = 1):
+            label = ctk.CTkLabel(self.toolbar, text=text, font=(self.font, 20))
+            label.grid(row=2, column=self.column, columnspan=columnspan)
+        
 
         # Back to main menu button
-        self.back = ttk.Button(self.toolbar, text="Back", command=self.start_gallery_mode)
-        self.back.grid(row=3, column=self.column)
+        self.back_label = make_label("Back")
+        self.back = make_button(self.start_gallery_mode, "back.png")
         
         self.column += 1
 
-        self.clear = ttk.Button(self.toolbar, text="Clear Drawing", command=painting.new_drawing)
-        self.clear.grid(row=3, column=self.column)
+        # Clear Drawing
+        self.clear_label = make_label("Clear")
+        self.clear = make_button(painting.new_drawing, "clear.png")
 
         self.column += 1
 
         # Eraser Mode
-        self.eraser = ttk.Button(self.toolbar, text="Eraser", command=lambda: painting.set_color(self, painting.eraser_color()))
-        self.eraser.grid(row=3, column=self.column)
-
+        self.eraser_label = make_label("Eraser")
+        self.eraser = make_button(lambda: painting.set_color(self, painting.eraser_color()), "eraser.png")
         # Color Selector
         self.column += 1
+        self.color_label = make_label("Brush Color")
         self.color = get_config().get("brushes", "default_color")
         self.set_color()
 
         # Brush Size
         self.column += 2
-        self.brush_size = ttk.Scale(self.toolbar, from_=1, to=get_config().getint("brushes", "max_brush_size"), value=self.brush_size, command=self.set_brush_size)
+        self.brush_size_label = make_label("Brush Size", 2)
+        self.brush_size = ctk.CTkSlider(self.toolbar, from_=1, to=get_config().getint("brushes", "max_brush_size"), command=self.set_brush_size, width=100)
         self.brush_size.grid(row=3, column=self.column)
+        
         self.column += 1
-        self.brush_size_label = ttk.Label(self.toolbar, text="Brush Size")
-        self.brush_size_label.grid(row=2, column=self.column)
         self.set_brush_size(get_config().getint("brushes", "default_brush_size"))
 
         # Camera Mode
         self.column += 1
-        self.camera_mode = ttk.Button(self.toolbar, text="Camera Mode", command=self.set_camera_mode)
-        self.camera_mode.grid(row=3, column=self.column)
+        self.camera_mode_label = make_label("Overlay")
+        self.camera_mode = make_button(self.set_camera_mode, "camera_mode.png")
         
         # Save Button
         self.column += 1
-        self.save_button = ttk.Button(self.toolbar, text="Save", command=self.save_image)
-        self.save_button.grid(row=3, column=self.column)
+
+        self.save_label = make_label("Save")
+        self.save_button = make_button(self.save_image, "save.png")
 
     def set_camera_mode(self):
         painting.swap_camera_mode()
@@ -118,16 +127,23 @@ class MyApp(tk.Tk):
         if hasattr(self, "color_panel"):
             self.color_panel.destroy()
 
-        self.color_panel = tk.Canvas(self.toolbar, height=40, width=175, bg="white")
+        btn_width = 30
+        padding = 2
+        canvas_width = (btn_width + padding * 2) * len(u.colors)
+        self.color_panel = tk.Canvas(self.toolbar, height=40, width=canvas_width, bg="gray13", highlightthickness=0)
+        
         for i, color_name in enumerate(u.colors.keys()):
-            outline = "black" if color_name == self.color else "white"
-            btn = self.color_panel.create_oval(i * 20 + 20, 10, (i + 1) * 20 + 20, 30,
+            outline = "white" if color_name == self.color else "gray13"
+            start = i * (btn_width + padding)
+            btn = self.color_panel.create_oval(start, padding, start + btn_width, btn_width + padding,
                 fill=color_name,
-                outline=outline
+                outline=outline,
+                width=2
             )
+
             self.color_panel.tag_bind(btn, "<Button-1>", lambda e, c=color_name: painting.set_color(self, c))
         
-        self.color_panel.grid(row=3, column=3)
+        self.color_panel.grid(row=3, column=4)
     
     def set_brush_size(self, size):
         size = int(float(size))
@@ -135,10 +151,10 @@ class MyApp(tk.Tk):
         if hasattr(self, "brush_size_indicator"):
             self.brush_size_indicator.destroy()
 
-        self.brush_size_indicator = tk.Canvas(self.toolbar, height=40, width=40)
+        self.brush_size_indicator = tk.Canvas(self.toolbar, height=40, width=40, bg="gray13", highlightthickness=0)
         offset = 20 - size // 2
-        self.brush_size_indicator.create_oval(offset, offset, self.brush_size + offset, self.brush_size + offset, fill="black")
-        self.brush_size_indicator.grid(row=3, column=4)
+        self.brush_size_indicator.create_oval(offset, offset, self.brush_size + offset, self.brush_size + offset, fill="white")
+        self.brush_size_indicator.grid(row=3, column=7)
         painting.set_brush_size(size)
 
     def start_gallery_mode(self):
@@ -152,6 +168,8 @@ class MyApp(tk.Tk):
 
     # displays image when finger painting pressed
     def start_painting_mode(self):
+        loading_image = ctk.CTkImage(Image.open("splash.jpg"), size=(480, 270))
+        self.image.configure(image=loading_image)
         self.in_main_menu = False
         self.toolbar_init()
         painting.init()

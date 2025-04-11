@@ -7,7 +7,8 @@ from math import ceil
 import utils as u
 # import index as main_menu
 import tkinter as tk
-from PIL import Image, ImageTk
+from PIL import Image
+from customtkinter import CTkImage
 
 if __name__ == '__main__':
     load_config()
@@ -107,8 +108,8 @@ def display_gallery(tk: tk.Tk):
     # Convert to tk and display result
     result = cv2.addWeighted(result, a, img, b, 0)
     display_image = Image.fromarray(result)
-    display_image = ImageTk.PhotoImage(display_image)
+    display_image = CTkImage(display_image, size=(width, height))
 
     tk.image.imgtk = display_image
-    tk.image.config(image=display_image)
+    tk.image.configure(image=display_image)
     tk.after(10, tk.play_gallery_image)
